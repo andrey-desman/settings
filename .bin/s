@@ -1,0 +1,130 @@
+#!/bin/bash
+
+source ~/.ksvn
+
+D=( eval )
+
+cmd=$1
+shift
+
+function get_info()
+{
+  # local IFS=$'\n'
+  local info="$(svn info "$1")"
+  expr match "$(echo "$info" | grep "Last Changed Rev:")" "\\(Last Changed Rev\\)"
+  # echo $info
+}
+
+function get_last_changed_rev()
+{
+  [ $# -eq 2 ] || return 1
+  eval $2=$(svn info "$1" | grep "Last Changed Rev:" | sed -e "s/Last Changed Rev: //")
+}
+
+function get_repository()
+{
+  [ $# -eq 2 ] || return 1
+  eval $2=$(svn info "$1" | grep "Repository Root:" | sed -e "s/Repository Root: //")
+}
+
+function get_branch()
+{
+  [ $# -eq 2 ] || return 1
+  eval $2=$(basename $(svn info "$1" | grep "URL:" | sed -e "s/URL: //"))
+}
+
+function get_ancestor()
+{
+  if [ $# -ne 3 ]; then
+    exit 1
+  fi
+
+  local ancestor=$(expr match "$(svn log --stop-on-copy -v -r1:HEAD -l1 $1 | egrep "\\s*A\\s.*\\(from .*\\)")" ".*(from \\(.*\\:.*\\)).*")
+  eval $2=${ancestor%:*}
+  eval $3=${ancestor#*:}
+}
+
+function parse_opts()
+{
+  local spec=$1
+  shift
+
+  while getopts :D$spec opt; do
+    if [ "$opt" != "?" ]; then
+      if [ "$OPTARG" != "" ]; then
+        eval opt_$opt="'$OPTARG'"
+      else
+        eval opt_$opt=1
+      fi
+    fi
+  done
+
+  [ "$opt_D" == "1" ] && D=( echo \> )
+  # D=( echo \> )
+  return $((OPTIND-1))
+}
+
+function run()
+{
+  ${D[@]} $(printf '%q ' "$@")
+}
+
+case $cmd in
+
+mkbr)
+  parse_opts nr: "$@"
+  shift $?
+
+  if [ "$#" -eq 0 ]; then
+    echo "Usage: $(basename $0) $cmd [-D] [-c] [-r rev] branch_name [base_branch]"
+    echo "  Arguments:"
+    echo "    branch_name - Name of the branch to create."
+    echo "    base_branch - Base branch. Defaults to 'trunk' if not specified."
+    echo
+    echo "    NOTE: Branch name must not contain '/'. It will automatically be"
+    echo "          placed into 'branches' subdir of repository."
+    echo
+    echo "  Options:"
+    echo "    -D     - Dry run. Output commands instead of executing them."
+    echo "    -n     - Do not check out branch after creating."
+    echo "    -r rev - Revision of base branch. Defaults to latest if not specified."
+    echo
+    echo "  Examples:"
+    echo "    $(basename $0) $cmd -r111 DEV_mybranch"
+    echo "    $(basename $0) $cmd DEV_my_fix_for_ED6 KA1.2_ED6"
+
+    exit 1
+  fi
+
+  branch_name="$1"
+
+  if [ "$2" == "" ] || [ "$2" == "trunk" ]; then
+    base_branch="trunk"
+  else
+    base_branch="branches/$2"
+  fi
+
+  branch_path=$S_REP/$S_PROJECT/branches/$branch_name
+  base_branch_path="$S_REP/$S_PROJECT/$base_branch"
+
+
+  rev=$(svn info "$base_branch_path" | grep "Last Changed Rev:" | sed -e "s/Last Changed Rev: //")
+  echo
+  echo Creating $branch_name from $base_branch@r$rev
+  run svn cp -r $rev -m "Creating from $base_branch@r$rev" $base_branch_path $branch_path
+  run svn co "$branch_path"
+  ;;
+
+rmbr)
+  for branch in "$@"; do
+    svn rm -m "Removed $branch" $S_REP/$S_PROJECT/branches/$branch
+  done
+  ;;
+
+test)
+  ;;
+
+*)
+  echo hz
+  ;;
+esac

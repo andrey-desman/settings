@@ -1,0 +1,91 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+
+if [[ $- != *i* ]] ; then
+  # Shell is non-interactive.  Be done now!
+  return
+fi
+
+# don't put duplicate lines in the history. See bash(1) for more options
+# ... or force ignoredups and ignorespace
+HISTCONTROL=ignoredups:ignorespace
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# make less more friendly for non-text input files, see lesspipe(1)
+#[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if [ -f ~/.etc/bash_completion ] && ! shopt -oq posix; then
+    . ~/.etc/bash_completion
+elif [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+    . /etc/bash_completion
+fi
+
+HOST="`hostname`"
+
+if [ -z "$SSH_CONNECTION" ]; then
+    PS1='\n\[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[0;32m\]\n\$ \[\e[0;37m\]'
+else
+    PS1='\n\[\e[0;31m\]$HOST \[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[0;32m\]\n\$ \[\e[0;37m\]'
+fi
+
+
+term_set_title ()
+{
+  echo -en "\033]2;$1\007";
+}
+
+git_clean ()
+{
+  git status --porcelain | grep \?\? | sed -e 's/^[?][?] //' | xargs rm -rf
+}
+
+PROMPT_COMMAND='term_set_title "$HOST"; history -a'
+
+PATH=~/.bin/:~/bin/:$PATH:~/bin/depot_tools
+export SVN_EDITOR=vim
+export EDITOR=vim
+export TERM=xterm-256color
+export LC_SSH_USER=andrey.sidorov
+export LESS=RX
+
+alias stripcolor='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
+
+#function vmake()
+#{
+#    VMAKE_TEMP_FILE=`tempfile`;
+#    VMAKE_NOCOL_TEMP_FILE=`tempfile`;
+#    CGCC_FORCE_COLOR=1 make "$@" 2>&1 | tee $VMAKE_TEMP_FILE;
+#    [ $PIPESTATUS -eq 0 ] || (cat $VMAKE_TEMP_FILE | stripcolor > $VMAKE_NOCOL_TEMP_FILE && gvim -q $VMAKE_NOCOL_TEMP_FILE -c :copen > /dev/null 2>&1 )
+#}
+
