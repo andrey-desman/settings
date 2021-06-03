@@ -81,6 +81,8 @@ export LESS=RX
 
 alias stripcolor='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
 
+[ -f /usr/share/autojump/autojump.sh ] && . /usr/share/autojump/autojump.sh
+
 #function vmake()
 #{
 #    VMAKE_TEMP_FILE=`tempfile`;

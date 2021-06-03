@@ -44,6 +44,7 @@ set guifont=dejavu\ sans\ mono\ 12
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
 
+set noswapfile
 set nobackup            " don't make backup files
 set history=50		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
@@ -169,15 +170,19 @@ highlight GitGutterDelete guifg=#ff2222 guibg=NONE ctermfg=1 ctermbg=NONE
 " Let clangd fully control code completion
 let g:ycm_clangd_uses_ycmd_caching = 0
 " Use installed clangd, not YCM-bundled clangd which doesn't get updates.
-let g:ycm_clangd_binary_path = exepath("clangd-8")
+"let g:ycm_clangd_binary_path = exepath("clangd-8")
 let g:ycm_clangd_args = ['-background-index']
+let g:ycm_auto_hover = ''
 
 let g:miniBufExplorerMoreThanOne = 0
 let g:miniBufExplForceSyntaxEnable = 1
 
 let g:airline#extensions#wordcount#enabled = 0
 
-let g:localvimrc_persistent = 2
+map <Leader>x <plug>NERDCommenterComment
+map <Leader>cc <plug>NERDCommenterComment
+map <Leader>X <plug>NERDCommenterUncomment
+map <Leader>cu <plug>NERDCommenterUncomment
 
 if exists('&signcolumn')  " Vim 7.4.2201
   set signcolumn=yes
@@ -191,9 +196,8 @@ set complete-=i
 vnoremap < <gv
 vnoremap > >gv
 noremap \p gP"_de
-nmap <Leader>bb vi{<Plug>VisualComment
-nmap <Leader>bd vi{<Plug>VisualDeComment
 
+nmap <F5> <plug>(YCMHover)
 nmap <F7> :cp<CR>
 nmap <F8> :cn<CR>
 

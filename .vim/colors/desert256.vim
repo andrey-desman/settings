@@ -241,6 +241,7 @@ if has("gui_running") || &t_Co == 88 || &t_Co == 256
     " 
 
     call <SID>X("Normal", "cccccc", "", "")
+    exec "hi SignColumn ctermbg=none"
 
     " highlight groups
     call <SID>X("Cursor", "708090", "f0e68c", "")

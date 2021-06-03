@@ -11,11 +11,12 @@ let s:subdirs = [ 'inc', 'src', 'include[s]\?', 'source[s]\?' ]
 let g:AltFile_ext_map = { }
 
 let g:AltFile_ext_map['c'] = [ 'h' ]
+let g:AltFile_ext_map['cc'] = [ 'hpp', 'h' ]
 let g:AltFile_ext_map['cpp'] = [ 'hpp', 'h' ]
 let g:AltFile_ext_map['cxx'] = [ 'hpp', 'h' ]
 let g:AltFile_ext_map['C'] = [ 'H' ]
-let g:AltFile_ext_map['h'] = [ 'cpp', 'cxx', 'c' ]
-let g:AltFile_ext_map['hpp'] = [ 'cpp', 'cxx' ]
+let g:AltFile_ext_map['h'] = [ 'cpp', 'cxx', 'c', 'cc' ]
+let g:AltFile_ext_map['hpp'] = [ 'cpp', 'cxx', 'cc' ]
 let g:AltFile_ext_map['H'] = [ 'C' ]
 
 fu! s:CloseLoc()
@@ -121,7 +122,7 @@ fu! s:FindExistingAlt(file_name)
 	let l:alt_ext = s:GetAltExt(l:ext)
 
 	if (empty(l:alt_ext))
-		return []
+		return -1
 	endif
 
 	let l:last_buffer = bufnr('$')
