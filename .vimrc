@@ -28,6 +28,7 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'fholgado/minibufexpl.vim'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'vim-scripts/searchfold.vim'
+Plugin 'andymass/vim-matchup'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -169,8 +170,6 @@ highlight GitGutterDelete guifg=#ff2222 guibg=NONE ctermfg=1 ctermbg=NONE
 " YouCompleteMe
 " Let clangd fully control code completion
 let g:ycm_clangd_uses_ycmd_caching = 0
-" Use installed clangd, not YCM-bundled clangd which doesn't get updates.
-"let g:ycm_clangd_binary_path = exepath("clangd-8")
 let g:ycm_clangd_args = ['-background-index']
 let g:ycm_auto_hover = ''
 
