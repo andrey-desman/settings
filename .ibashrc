@@ -51,21 +51,27 @@ elif [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-HOST="$(cat /etc/hostname)"
+git_branch() {
+    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    [ -n "${BRANCH}" ] && echo "[${BRANCH}]" || echo ""
+}
 
-if [ -z "$SSH_CONNECTION" -a -z "$DOCKER_CONTAINER" ]; then
-    PS1='\n\[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[0;32m\]\n\$ \[\e[0;37m\]'
+host_spec=""
+[ -n "$SSH_CONNECTION" ] && host_spec="s:"
+[ -n "$DOCKER_CONTAINER" ] && host_spec="${host_spec}d:"
+
+if [ -z "$host_spec" ]; then
+    PS1='\n\[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[38;5;235m\]$(git_branch)\[\e[0;32m\]\n\$ \[\e[0;37m\]'
 else
-    PS1='\n\[\e[0;31m\]$HOST \[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[0;32m\]\n\$ \[\e[0;37m\]'
+    PS1='\n\[\e[0;31m\]${host_spec}\h \[\e[0;32m\]\u \[\e[0;34m\]\w \[\e[38;5;235m\]$(git_branch)\[\e[0;32m\]\n\$ \[\e[0;37m\]'
 fi
-
 
 term_set_title ()
 {
   echo -en "\033]2;$1\007";
 }
 
-PROMPT_COMMAND='term_set_title "$HOST"; history -a'
+PROMPT_COMMAND='term_set_title "$(cat /etc/hostname)"; history -a'
 
 PATH=~/.bin/:~/bin/:$PATH
 export SVN_EDITOR=vim

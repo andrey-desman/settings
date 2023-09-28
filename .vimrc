@@ -29,6 +29,7 @@ Plugin 'fholgado/minibufexpl.vim'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'vim-scripts/searchfold.vim'
 Plugin 'andymass/vim-matchup'
+Plugin 'editorconfig/editorconfig-vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
