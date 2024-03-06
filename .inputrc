@@ -1,3 +1,4 @@
+set enable-bracketed-paste
 set editing-mode vi
 set keymap vi-insert
 

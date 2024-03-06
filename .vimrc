@@ -1,6 +1,6 @@
 " When started as "evim", evim.vim will already have done these settings.
 if v:progname =~? "evim"
-  finish
+	finish
 endif
 
 " Use Vim settings, rather then Vi settings (much better!).
@@ -20,7 +20,11 @@ call vundle#begin()
 
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'Valloric/YouCompleteMe'
+if v:version >= 801
+	Plugin 'Valloric/YouCompleteMe'
+	Plugin 'Yggdroot/indentLine'
+	Plugin 'yuttie/comfortable-motion.vim'
+endif
 Plugin 'godlygeek/tabular'
 Plugin 'vim-airline/vim-airline'
 Plugin 'tpope/vim-fugitive'
@@ -68,111 +72,125 @@ set ffs=unix,dos
 set pastetoggle=<F6>
 set fdo-=search
 set title
-set t_BE=
-
-"set tags+=./tags;
-
-" Don't use Ex mode, use Q for formatting
-map Q gq
+set tw=140
+set cino=:0,l1,g0,t0,(s,U1,m1,j1,J1
 
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if &t_Co > 2 || has("gui_running")
-  syntax on
-  set hlsearch
-  if &term =~ "xterm"
-   set t_Co=256
-   colo desert256
-   if has("terminfo")
-     let &t_Sf=nr2char(27).'[3%p1%dm'
-     let &t_Sb=nr2char(27).'[4%p1%dm'
-   else
-     let &t_Sf=nr2char(27).'[3%dm'
-     let &t_Sb=nr2char(27).'[4%dm'
-   endif
-  else
-    colo desert
-  endif
-  " highlight Over100 guibg=grey25
-  " match Over100 /.\%>101v/
-  autocmd BufEnter * setlocal cursorline
-  hi cursorline ctermbg=236 guibg=grey30
+	syntax on
+	set hlsearch
+	"hi Normal ctermfg=231 ctermbg=NONE cterm=NONE
+	"hi Folded ctermfg=226 ctermbg=NONE cterm=NONE
+	"hi FoldColumn ctermfg=226 ctermbg=NONE cterm=NONE
+	if &term =~ "xterm"
+		colo desert256
+        hi cursorline cterm=none ctermbg=234 term=none
+		set t_Co=256
+		"if exists("&t_BE")
+			"let &t_BE = "\e[?2004h"
+			"let &t_BD = "\e[?2004l"
+			"let &t_PS = "\e[200~"
+			"let &t_PE = "\e[201~"
+		"endif
+		if has("terminfo")
+			let &t_Sf=nr2char(27).'[3%p1%dm'
+			let &t_Sb=nr2char(27).'[4%p1%dm'
+		else
+			let &t_Sf=nr2char(27).'[3%dm'
+			let &t_Sb=nr2char(27).'[4%dm'
+		endif
+	else
+		colo desert
+	endif
+	" highlight Over100 guibg=grey25
+	" match Over100 /.\%>101v/
+	autocmd BufEnter * setlocal cursorline
 endif
-
-function! SpaceInBraces()
-	normal! di(
-	let @" = substitute(@", '^\s*\(.\{-}\)\s*$', ' \1 ', '')
-	normal! P
-endfunction
 
 " Only do this part when compiled with support for autocommands.
 if has("autocmd")
+	" Put these in an autocmd group, so that we can delete them easily.
+	augroup vimrcEx
+		au!
 
-  " Enable file type detection.
-  " Use the default filetype settings, so that mail gets 'tw' set to 72,
-  " 'cindent' is on in C files, etc.
-  " Also load indent files, to automatically do language-dependent indenting.
-  filetype plugin indent on
+		" For all text files set 'textwidth' to 78 characters.
+		autocmd FileType text setlocal textwidth=78
+		" autocmd FileType cpp setlocal omnifunc=GtagsComplete
+		" autocmd FileType c setlocal omnifunc=GtagsComplete
 
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-  au!
+		" When editing a file, always jump to the last known cursor position.
+		" Don't do it when the position is invalid or when inside an event handler
+		" (happens when dropping a file on gvim).
+		au BufRead,BufNewFile *.make setfiletype make
+		autocmd BufReadPost *
+					\ if line("'\"") > 0 && line("'\"") <= line("$") |
+					\   exe "normal g`\"" |
+					\ endif
 
-  " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
-  " autocmd FileType cpp setlocal omnifunc=GtagsComplete
-  " autocmd FileType c setlocal omnifunc=GtagsComplete
+		fu! LoadProj()
+			let fname = findfile("build.sh", "./;~")
 
-  " When editing a file, always jump to the last known cursor position.
-  " Don't do it when the position is invalid or when inside an event handler
-  " (happens when dropping a file on gvim).
-  au BufRead,BufNewFile *.make setfiletype make
-  autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   exe "normal g`\"" |
-    \ endif
+			if strlen(fname)
+				exe ":setl makeprg=" . escape(fnamemodify(fname, ":p") . " ". expand(expand("%:p:h")), ' ')
+			else
+				let fname = findfile("Makefile", "./;~")
 
-  fu! LoadProj()
-      let fname = findfile("build.sh", "./;~")
+				if strlen(fname)
+					exe ":setl makeprg=make\\ -f\\ \\\"" . fnamemodify(fname, ":p:gs/ /\\\\ /") .
+								\ "\\\"\\ -C\\ \\\"" . fnamemodify(fname, ":p:h:gs/ /\\\\ /") . "\\\""
+				endif
+			endif
 
-      if strlen(fname)
-          exe ":setl makeprg=" . escape(fnamemodify(fname, ":p") . " ". expand(expand("%:p:h")), ' ')
-      else
-          let fname = findfile("Makefile", "./;~")
+			let fname = findfile(".myvimrc", "./;~")
 
-          if strlen(fname)
-              exe ":setl makeprg=make\\ -f\\ \\\"" . fnamemodify(fname, ":p:gs/ /\\\\ /") .
-                                  \ "\\\"\\ -C\\ \\\"" . fnamemodify(fname, ":p:h:gs/ /\\\\ /") . "\\\""
-          endif
-      endif
+			if strlen(fname)  && filereadable(fname)
+				exe ":so " . fnamemodify(fname, ":p:gs/ /\\\\ /")
+			endif
+		endfun
 
-      let fname = findfile(".myvimrc", "./;~")
+		autocmd BufEnter * call LoadProj()
 
-      if strlen(fname)  && filereadable(fname)
-          exe ":so " . fnamemodify(fname, ":p:gs/ /\\\\ /")
-      endif
-  endfun
-
-  autocmd BufEnter * call LoadProj()
-
-  augroup END
+	augroup END
 
 else
 
-  set autoindent		" always set autoindenting on
+	set autoindent		" always set autoindenting on
 
 endif " has("autocmd")
+
+set mouse=a
+
+let g:vim_json_conceal=0
+
+if v:version >= 801
+	let g:comfortable_motion_interval = 1000.0 / 60.0
+	let g:comfortable_motion_scroll_down_key = "j"
+	let g:comfortable_motion_scroll_up_key = "k"
+	let g:comfortable_motion_no_default_key_mappings = 1
+	let g:comfortable_motion_impulse_multiplier = 1  " Feel free to increase/decrease this value.
+	nnoremap <silent> <C-d> :call comfortable_motion#flick(g:comfortable_motion_impulse_multiplier * winheight(0) * 2)<CR>
+	nnoremap <silent> <C-u> :call comfortable_motion#flick(g:comfortable_motion_impulse_multiplier * winheight(0) * -2)<CR>
+	nnoremap <silent> <C-f> :call comfortable_motion#flick(g:comfortable_motion_impulse_multiplier * winheight(0) * 4)<CR>
+	nnoremap <silent> <C-b> :call comfortable_motion#flick(g:comfortable_motion_impulse_multiplier * winheight(0) * -4)<CR>
+	noremap <silent> <ScrollWheelDown> :call comfortable_motion#flick(40)<CR>
+	noremap <silent> <ScrollWheelUp>   :call comfortable_motion#flick(-40)<CR>
+
+	let g:indentLine_defaultGroup = 'SpecialKey'
+	let g:indentLine_char = '┊'
+
+	" YouCompleteMe
+	" Let clangd fully control code completion
+	let g:ycm_clangd_uses_ycmd_caching = 0
+	let g:ycm_clangd_args = ['-background-index', '--query-driver=/opt/rh/devtoolset-11/root/usr/bin/c++']
+	let g:ycm_auto_hover = ''
+	let g:ycm_confirm_extra_conf = 0
+endif
 
 " GitGutter
 highlight GitGutterAdd    guifg=#009900 guibg=NONE ctermfg=2 ctermbg=NONE
 highlight GitGutterChange guifg=#bbbb00 guibg=NONE ctermfg=3 ctermbg=NONE
 highlight GitGutterDelete guifg=#ff2222 guibg=NONE ctermfg=1 ctermbg=NONE
-
-" YouCompleteMe
-" Let clangd fully control code completion
-let g:ycm_clangd_uses_ycmd_caching = 0
-let g:ycm_clangd_args = ['-background-index']
-let g:ycm_auto_hover = ''
 
 let g:miniBufExplorerMoreThanOne = 0
 let g:miniBufExplForceSyntaxEnable = 1
@@ -185,9 +203,9 @@ map <Leader>X <plug>NERDCommenterUncomment
 map <Leader>cu <plug>NERDCommenterUncomment
 
 if exists('&signcolumn')  " Vim 7.4.2201
-  set signcolumn=yes
+	set signcolumn=yes
 else
-  let g:gitgutter_sign_column_always = 1
+	let g:gitgutter_sign_column_always = 1
 endif
 
 set completeopt=menuone,menu,longest
@@ -201,8 +219,4 @@ nmap <F5> <plug>(YCMHover)
 nmap <F7> :cp<CR>
 nmap <F8> :cn<CR>
 
-vmap <leader>w :w! /tmp/vitmp<CR>
-nmap <leader>r :r! cat /tmp/vitmp<CR>
-
-nnoremap <leader>( :call SpaceInBraces()<CR>
 
