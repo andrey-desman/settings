@@ -21,7 +21,7 @@ relpath()
 
 home=$(readlink -f ~)
 
-targets="$(find . -maxdepth 1 -mindepth 1 \! -name ".git" -a \! -name "install.sh" -a \! -name ".git_cache_meta" -a \! -name "perm.sh")"
+targets="$(find . -maxdepth 1 -mindepth 1 \! -name ".git" -a \! -name ".gitignore" -a \! -name "install.sh" -a \! -name ".git_cache_meta" -a \! -name "perm.sh")"
 
 for f in $targets; do
   item=$(relpath $home $(readlink -f $f))

@@ -1,0 +1,15 @@
+[user]
+	name = Andrey Sidorov
+
+[advice]
+	detachedHead = false
+
+[alias]
+	st = status
+	pub = push -u origin HEAD
+	ci = commit
+	amend = commit --amend
+	lg = log --pretty=oneline --abbrev-commit
+
+[include]
+	path = ~/.local_gitconfig

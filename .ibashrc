@@ -41,6 +41,7 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
+alias ip='ip -c=auto'
 
 mkcdir()
 {
@@ -82,6 +83,8 @@ term_set_title ()
 PROMPT_COMMAND='term_set_title "$(cat /etc/hostname)"; history -a'
 
 PATH=~/.bin/:~/bin/:$PATH
+export LANGUAGE=en_US.UTF-8
+export LANG=en_US.UTF-8
 export SVN_EDITOR=vim
 export EDITOR=vim
 export TERM=xterm-256color
@@ -98,4 +101,5 @@ alias stripcolor='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
 #    CGCC_FORCE_COLOR=1 make "$@" 2>&1 | tee $VMAKE_TEMP_FILE;
 #    [ $PIPESTATUS -eq 0 ] || (cat $VMAKE_TEMP_FILE | stripcolor > $VMAKE_NOCOL_TEMP_FILE && gvim -q $VMAKE_NOCOL_TEMP_FILE -c :copen > /dev/null 2>&1 )
 #}
+
 
